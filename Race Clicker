@@ -1,0 +1,166 @@
+-- Create a ScreenGui and Frame (rectangle)
+local screenGui = Instance.new("ScreenGui", game.Players.LocalPlayer:WaitForChild("PlayerGui"))
+local rectangle = Instance.new("Frame", screenGui)
+rectangle.Size = UDim2.new(0, 300, 0, 190)
+rectangle.Position = UDim2.new(0.5, -150, 0.5, -95)
+rectangle.BackgroundColor3 = Color3.fromRGB(95, 95, 95)
+rectangle.BackgroundTransparency = 0.5
+
+-- Add rounded corners and outline to the rectangle
+Instance.new("UICorner", rectangle).CornerRadius = UDim.new(0, 45)
+local stroke = Instance.new("UIStroke", rectangle)
+stroke.Thickness = 3
+stroke.Color = Color3.fromRGB(40, 40, 40)
+stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+
+-- Create a TextLabel for placeholder text
+local placeholder = Instance.new("TextLabel", rectangle)
+placeholder.Size = UDim2.new(1, -20, 0, 30)
+placeholder.Position = UDim2.new(0, 10, 0, 2)
+placeholder.Text = "V3N0M_V0RT3X"
+placeholder.BackgroundTransparency = 1
+placeholder.TextColor3 = Color3.fromRGB(255, 255, 255)
+Instance.new("UICorner", placeholder).CornerRadius = UDim.new(0, 25)
+
+-- Add a separator line
+local separatorLine = Instance.new("Frame", rectangle)
+separatorLine.Size = UDim2.new(1, -20, 0, 2)
+separatorLine.Position = UDim2.new(0, 10, 0, 34)
+separatorLine.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+
+-- Create a ScrollingFrame for buttons
+local scrollingFrame = Instance.new("ScrollingFrame", rectangle)
+scrollingFrame.Size = UDim2.new(1, -20, 1, -50)
+scrollingFrame.Position = UDim2.new(0, 10, 0, 42)
+scrollingFrame.BackgroundTransparency = 1
+scrollingFrame.CanvasSize = UDim2.new(0, 0, 2, 0)
+
+-- Create buttons inside the ScrollingFrame
+local function createButton(parent, position, text)
+    local button = Instance.new("TextButton", parent)
+    button.Size = UDim2.new(0.8, 0, 0, 30)
+    button.Position = position
+    button.Text = text
+    button.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Instance.new("UICorner", button).CornerRadius = UDim.new(0, 25)
+    return button
+end
+
+-- Variables for teleportation positions
+local teleportPosition1 = Vector3.new(-999999, 5, 15)
+local teleportPosition2 = Vector3.new(-113000, 5, 15)
+
+-- Teleporting interval in seconds
+local teleportInterval = 0.2
+local pauseDuration = 0.5
+
+-- Player's character and humanoid root part for teleporting
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+-- Teleportation flags
+local isPaused = false
+local teleportingActive = true
+
+-- Function to teleport the player to teleportPosition1
+local function teleportToPosition1()
+    humanoidRootPart.CFrame = CFrame.new(teleportPosition1)
+end
+
+-- Function to teleport the player to teleportPosition2 (Fix Button)
+local function teleportToPosition2()
+    humanoidRootPart.CFrame = CFrame.new(teleportPosition2)
+end
+
+-- Main teleporting loop
+local function teleportLoop()
+    while teleportingActive do
+        if not isPaused then
+            teleportToPosition1()
+        end
+        wait(teleportInterval)
+
+        -- Automatically toggle Fix if player reaches -1000400
+        if humanoidRootPart.Position.X <= -1000400 then
+            teleportingActive = false
+            teleportToPosition2()
+            wait(pauseDuration)
+            teleportingActive = true
+        end
+    end
+end
+
+-- Add "Pause Script" and "Fix" buttons
+local pauseButton = createButton(scrollingFrame, UDim2.new(0.1, 0, 0.02, 0), "Pause Script")
+local fixButton = createButton(scrollingFrame, UDim2.new(0.1, 0, 0.11, 0), "Fix")
+
+-- Pause Script button functionality
+pauseButton.MouseButton1Click:Connect(function()
+    isPaused = not isPaused
+    if isPaused then
+        pauseButton.Text = "Resume Script"
+    else
+        pauseButton.Text = "Pause Script"
+    end
+end)
+
+-- Fix Button functionality
+fixButton.MouseButton1Click:Connect(function()
+    teleportingActive = false
+    teleportToPosition2()  -- Teleport to the Fix position
+
+    -- Wait for 0.5 seconds and then restart teleporting
+    wait(pauseDuration)
+    teleportingActive = true
+    teleportLoop()
+end)
+
+-- Add "Hide GUI" and "Destroy GUI" buttons
+local button9 = createButton(scrollingFrame, UDim2.new(0.1, 0, 0.2, 0), "Hide GUI")
+local button10 = createButton(scrollingFrame, UDim2.new(0.1, 0, 0.29, 0), "Destroy GUI")
+
+-- Function to hide/show the GUI
+local function toggleGuiVisibility()
+    screenGui.Enabled = not screenGui.Enabled
+end
+
+-- Function to fully destroy the GUI
+local function destroyGui()
+    teleportingActive = false -- Stop teleporting loop
+    isPaused = true -- Pause any scripts
+    screenGui:Destroy()
+end
+
+-- User input handling for hiding/showing the GUI (Ctrl + Z)
+local userInputService = game:GetService("UserInputService")
+userInputService.InputBegan:Connect(function(input, gameProcessed)
+    if not gameProcessed then
+        if input.KeyCode == Enum.KeyCode.Z and userInputService:IsKeyDown(Enum.KeyCode.LeftControl) then
+            toggleGuiVisibility()
+        end
+    end
+end)
+
+-- Connect buttons 9 and 10 to their respective functions
+button9.MouseButton1Click:Connect(toggleGuiVisibility)
+button10.MouseButton1Click:Connect(destroyGui)
+
+-- Add "Discord" button
+local discordButton = createButton(scrollingFrame, UDim2.new(0.1, 0, 0.38, 0), "Discord (Click and paste)")
+
+-- Discord button functionality
+discordButton.MouseButton1Click:Connect(function()
+    local inviteLink = "https://discord.gg/ktYuZnX75J"
+    if setclipboard then
+        setclipboard(inviteLink) -- Copies the invite link to the clipboard
+        print("Discord invite link copied to clipboard.")
+    else
+        print("Copying to clipboard is not supported on this platform.")
+    end
+end)
+
+
+-- Start the teleporting loop
+teleportLoop()
